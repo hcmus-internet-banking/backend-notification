@@ -3,7 +3,8 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import route from './routes/index.js';
-import { initialSocket } from './services/socket/socket.service.js';
+import WebSockets from './utils/WebSockets.js';
+
 dotenv.config();
 
 const app = express();
@@ -11,18 +12,20 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.SERVER_HCMUS_BANKING_URL || 'http://localhost:3000',
+    origin: process.env.SERVER_HCMUS_BANKING_URL,
     methods: ['GET', 'POST'],
   },
 });
 
-const PORT = process.env.PORT || 8000;
+// set global variables for socket.io
+global.io = io;
+global.io.on('connection', WebSockets.connection);
 
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: true }));
-// app.use(route);
+const PORT = process.env.PORT || 9000;
 
-initialSocket(io);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/api', route);
 
 httpServer.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`);
