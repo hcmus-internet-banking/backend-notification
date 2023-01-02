@@ -15,14 +15,14 @@ const notifyPayInvoiceSchema = z.object({
   }),
   amount: z.preprocess((a) => parseInt(z.string().parse(a)), z.number()),
   invoiceId: z.string(),
-  message: z.string(),
 });
 
 export const notifyPayInvoice = async (req, res) => {
   try {
-    console.log('req.body', req.body);
     const { payload } = req.body;
-    const { to, from, amount, invoiceId } = payload;
+    notifyPayInvoiceSchema.parse(payload);
+    const { to, from, amount, invoiceId } =
+      notifyPayInvoiceSchema.parse(payload);
     const message = `You have received a payment of ${amount} from ${from.lastName} ${from.firstName} for invoice ${invoiceId}`;
     console.log('message', message);
     global.io.sockets.in(to.id).emit('message', message);
