@@ -1,10 +1,9 @@
-import * as dotenv from 'dotenv';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import route from './routes/index.js';
 import WebSockets from './utils/WebSockets.js';
-
+import * as dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
@@ -17,7 +16,6 @@ const io = new Server(httpServer, {
   },
 });
 
-// set global variables for socket.io
 global.io = io;
 global.io.on('connection', WebSockets.connection);
 
@@ -28,5 +26,5 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', route);
 
 httpServer.listen(PORT, () => {
-  console.log(`Listening on port ${PORT}`);
+  console.log(`[Server ] is listening on port ${PORT}`);
 });

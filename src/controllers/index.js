@@ -1,4 +1,4 @@
-import z from 'zod';
+import z, { string } from 'zod';
 
 const notifyPayInvoiceSchema = z.object({
   to: z.object({
@@ -17,56 +17,71 @@ const notifyPayInvoiceSchema = z.object({
   invoiceId: z.string(),
 });
 
+const notifyCancelInvoiceSchema = z.object({
+  invoiceId: z.string(),
+  from: z.string(),
+  to: z.string(),
+  messageForCreater: z.string(),
+  messageForCustomer: z.string(),
+});
+
 export const notifyPayInvoice = async (req, res) => {
   try {
     const { payload } = req.body;
-    notifyPayInvoiceSchema.parse(payload);
+
     const { to, from, amount, invoiceId } =
       notifyPayInvoiceSchema.parse(payload);
-    const message = `You have received a payment of ${amount} from ${from.lastName} ${from.firstName} for invoice ${invoiceId}`;
-    console.log('message', message);
+    const message = `You have received a payment of ${amount} from ${from.lastName} ${from.firstName} for invoice #${invoiceId}`;
     global.io.sockets.in(to.id).emit('message', message);
-
     res.json({
       success: true,
+      message: 'OK',
     });
   } catch (error) {
     res.json({
       success: false,
+      message: 'Error',
     });
-
     console.log(error);
   }
 };
 
-export const notifyCancelInvoice = async () => {
-  const { to, from } = req.body;
+export const notifyCreateInvoice = async (req, res) => {
+  try {
+    const { payload } = req.body;
 
-  const user = users.find((user) => {
-    return user.id === to;
-  });
-
-  if (user) {
-    user.socketIDs.forEach((socketID) => {
-      io.to(socketID).emit('invoice', from);
+    const { to, from, invoiceId } = notifyPayInvoiceSchema.parse(payload);
+    const message = `${from.lastName} ${from.firstName} has canceled invoice #${invoiceId}`;
+    global.io.sockets.in(to.id).emit('message', message);
+    res.json({
+      success: true,
+      message: 'OK',
     });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: 'Error',
+    });
+    console.log(error);
   }
-
-  res.status(200).json({ message: 'OK' });
 };
 
-export const notifyCreateInvoice = async () => {
-  const { to, from } = req.body;
-
-  const user = users.find((user) => {
-    return user.id === to;
-  });
-
-  if (user) {
-    user.socketIDs.forEach((socketID) => {
-      io.to(socketID).emit('invoice', from);
+export const notifyCancelInvoice = async (req, res) => {
+  try {
+    const { payload } = req.body;
+    const { from, to, messageForCreater, messageForCustomer } =
+      notifyCancelInvoiceSchema.parse(payload);
+    global.io.sockets.in(from).emit('message', messageForCreater);
+    global.io.sockets.in(to).emit('message', messageForCustomer);
+    res.json({
+      success: true,
+      message: 'OK',
     });
+  } catch (error) {
+    res.json({
+      success: false,
+      message: 'Error',
+    });
+    console.log(error);
   }
-
-  res.status(200).json({ message: 'OK' });
 };
