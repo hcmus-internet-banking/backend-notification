@@ -41,7 +41,7 @@ export const notifyPayInvoice = async (req, res) => {
   try {
     const { payload } = req.body;
     const { to, from, invoiceId } = notifyPayInvoiceSchema.parse(payload);
-    const message = `${from.lastName} ${from.firstName} has canceled invoice #${invoiceId}`;
+    const message = `${from.lastName} ${from.firstName} has paid your invoice #${invoiceId}`;
     global.io.sockets.in(to.id).emit('message', message);
     res.json({
       success: true,
